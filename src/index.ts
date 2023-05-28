@@ -27,24 +27,45 @@ export default {
 		ctx: ExecutionContext
 	): Promise<Response> {
 
-		function generatePassword(): string {
-			var length = 12,
-					charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-",
-					retVal = "";
+		function generateChars(charset: string, length: number): string {
+			let retVal = ""
 			for (var i = 0, n = charset.length; i < length; ++i) {
-					retVal += charset.charAt(Math.floor(Math.random() * n));
+				retVal += charset.charAt(Math.floor(Math.random() * n))
 			}
-			return retVal;
+			return retVal
 		}
 
+		function generatePassword(upper: number, lower: number, num: number, special: number): string {
+			let password = ""
+			const alpha = "abcdefghijklmnopqrstuvwxyz"
+			password += generateChars(alpha.toUpperCase(), upper)
+			password += generateChars(alpha.toLowerCase(), lower)
+			password += generateChars("0123456789",num)
+			password += generateChars("!@#$%^&*()_+-",special)
+			let shuffled = password.split('').sort(function(){return 0.5-Math.random()}).join('')
+			return shuffled
+		}
+
+		const { searchParams } = new URL(request.url)
+
+		const upper = parseInt(searchParams.get('upper')!)
+		const lower = parseInt(searchParams.get('lower')!)
+		const num = parseInt(searchParams.get('num')!)
+		const special = parseInt(searchParams.get('special')!)
+
 		const data = {
-    	password: generatePassword(),
+    	password: generatePassword(upper, lower, num, special),
+			upper: upper,
+			lower: lower,
+			num: num,
+			special: special
   	};
 		const json = JSON.stringify(data, null, 2);
 		
 		return new Response(json, {
 			headers: {
         'content-type': 'application/json;charset=UTF-8',
+        'Access-Control-Allow-Origin': '*',
       },
 		});
 
